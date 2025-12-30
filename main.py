@@ -1,25 +1,58 @@
+from crewai.flow.flow import Flow, listen, start
 from crews.meeting_crew import MeetingAssistantCrew
+from crews.schemas.types import MeetingTask
+from typing import List
+from pydantic import BaseModel
 
-def load_meeting_notes(path="data/meeting_transcript.txt"):
-    try:
-        with open(path, "r", encoding="utf-8", errors="ignore") as file:
-            return file.read()
-    except FileNotFoundError:
-        raise FileNotFoundError(f"Arquivo não encontrado: {path}")
+
+class MeetingState(BaseModel):
+    id: str = "meeting-flow-1"
+    transcript: str = "Meeting transcript goes here"
+    tasks: List[MeetingTask] = []
+
+
+class MeetingFlow(Flow[MeetingState]):
+    initial_state = MeetingState
     
-
-def generate_tasks_meeting(transcript):
-    output = (
-        MeetingAssistantCrew()
-        .crew()
-        .kickoff(
-            inputs={'transcript': transcript}
+    @start()
+    def load_meeting_notes(self, path: str = 'data/meeting_transcript.txt'):
+        try:
+            with open(path, "r", encoding="utf-8", errors="ignore") as file:
+                self.state.transcript = file.read()
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Arquivo não encontrado: {path}")
+        
+    @listen(load_meeting_notes)
+    def generate_tasks_meeting_transcript(self):
+        output = (
+            MeetingAssistantCrew()
+            .crew()
+            .kickoff(
+                inputs={'transcript': self.state.transcript}
+            )
         )
-    )
+        
+        tasks = output["tasks"]
+        print('--- RESULTADO ---')
+        print('  ')
+        print(tasks)
+        self.state.tasks = tasks
+        
     
-    tasks = output["tasks"]
-    return tasks
+def kickoff():
+    """
+    Run the flow
+    """
+    meeting_flow = MeetingFlow()
+    meeting_flow.kickoff()
+    
+def plot():
+    """
+    Plot the flow
+    """
+    meeting_flow = MeetingFlow()
+    meeting_flow.plot()
+    
 
-content = load_meeting_notes()
-tasks = generate_tasks_meeting(transcript=content)
-print(tasks)
+if __name__ == '__main__':
+    kickoff()
