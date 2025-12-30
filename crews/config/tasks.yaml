@@ -1,0 +1,13 @@
+analyze_meeting:
+  description: >
+    Analise a transcrição da reunião fornecida e gere um conjunto de problemas detalhados e bem organizados com base na discussão.
+
+    Concentre-se em dividir a transcrição em tarefas ou problemas gerenciáveis,
+    certificando-se de documentar cada problema minuciosamente com etapas para reproduzi-lo, critérios de aceitação,
+    e quaisquer outros detalhes relevantes.
+
+    Segue a transcrição da reunião para sua referência:\n\n {transcript}
+  expected_output: >
+    Uma lista JSON de problemas com títulos e descrições, contendo instruções claras,
+    passos para reproduzir e critérios de aceitação, quando aplicável.
+  agent: meeting_analyzer
